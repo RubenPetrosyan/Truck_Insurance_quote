@@ -1,9 +1,25 @@
+import Head from 'next/head';
+import Link from 'next/link';
+import styles from '../styles/index.module.css';
+
 export default function Home() {
   return (
-    <div style={{ padding: "2rem", fontFamily: "Arial" }}>
-      <h1>✅ Truck Insurance Quote Backend</h1>
-      <p>This is your deployed Vercel backend.</p>
-      <p>Test the API endpoint: <a href="/api/getData?dot=2971998">/api/getData?dot=2971998</a></p>
+    <div className={styles.homeContainer}>
+      <Head>
+        <title>Truck Insurance Quote</title>
+      </Head>
+      <main>
+        <h1>Welcome to Truck Insurance Quote</h1>
+        <p>Select an option below:</p>
+        <div className={styles.buttonContainer}>
+          <Link href="/view?dot=2971998">
+            <button className={styles.navButton}>View Data</button>
+          </Link>
+          <Link href="/edit?dot=2971998">
+            <button className={styles.navButton}>Edit Data</button>
+          </Link>
+        </div>
+      </main>
     </div>
   );
 }
