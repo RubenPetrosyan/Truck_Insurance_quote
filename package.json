@@ -1,1 +1,13 @@
-
+{
+  "name": "Truck_Insurance_quote",
+  "version": "1.0.0",
+  "description": "Vercel serverless function for fetching Google Sheets data for a truck insurance email campaign",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vercel dev",
+    "start": "vercel"
+  },
+  "dependencies": {
+    "googleapis": "^105.0.0"
+  }
+}
