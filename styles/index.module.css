@@ -1,0 +1,42 @@
+/* styles/index.module.css */
+.homeContainer {
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    text-align: center;
+  }
+  
+  .homeContainer h1 {
+    color: #333;
+    margin-bottom: 1rem;
+  }
+  
+  .homeContainer p {
+    color: #555;
+    font-size: 1rem;
+  }
+  
+  .buttonContainer {
+    margin-top: 2rem;
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+  }
+  
+  .navButton {
+    padding: 0.75rem 1.25rem;
+    background-color: #0070f3;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+  
+  .navButton:hover {
+    background-color: #005bb5;
+  }
+  
