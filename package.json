@@ -7,6 +7,7 @@
     "start": "next start"
   },
   "dependencies": {
+    "googleapis": "^148.0.0",
     "next": "latest",
     "react": "latest",
     "react-dom": "latest"
