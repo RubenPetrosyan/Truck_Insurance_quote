@@ -11,7 +11,6 @@ async function getSheetData(dot) {
     const sheets = google.sheets({ version: 'v4', auth });
     const spreadsheetId = process.env.SPREADSHEET_ID;
     const range = 'Sheet1!A:Z';
-    
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId,
       range,
@@ -23,11 +22,11 @@ async function getSheetData(dot) {
       return null;
     }
 
-    // Process headers – trim extra spaces.
+    // Process headers – trim any extra spaces.
     const headers = rows[0].map(header => header.trim());
     console.log('Headers:', headers);
 
-    // Build an array of row objects.
+    // Build an array of row objects from subsequent rows.
     const dataObjects = rows.slice(1).map((row, rowIndex) => {
       const rowObj = {};
       headers.forEach((header, colIndex) => {
@@ -39,30 +38,33 @@ async function getSheetData(dot) {
     });
     console.log('Data objects:', dataObjects);
 
-    // Normalize the query DOT by trimming.
-    const targetDotString = dot.toString().trim();
-    const targetDotNumber = Number(targetDotString);
-    console.log('Target DOT as string:', `[${targetDotString}]`);
-    console.log('Target DOT as number:', targetDotNumber);
+    // Normalize the query DOT (as a string)
+    const queryDot = dot.toString().trim();
+    console.log('Query DOT (trimmed):', `[${queryDot}]`);
 
-    // First try to find a row by numeric comparison.
-    let foundRow = dataObjects.find(row => Number(row.DOT) === targetDotNumber);
-
-    // If numeric comparison doesn't work, fallback to exact string compare.
-    if (!foundRow) {
-      foundRow = dataObjects.find(row => row.DOT.trim() === targetDotString);
-    }
-
-    // Log comparisons for all rows.
-    dataObjects.forEach((row, index) => {
-      const sheetDot = row.DOT.trim();
-      console.log(`Row ${index + 2} DOT: [${sheetDot}]`);
+    // Try to find a match via a strict string comparison first,
+    // then fallback to a numeric comparison if that fails.
+    const foundRow = dataObjects.find(row => {
+      const sheetDot = (row.DOT || '').trim();
+      if (sheetDot === queryDot) {
+        console.log(`Exact string match found: [${sheetDot}] === [${queryDot}]`);
+        return true;
+      }
+      // Fallback: compare as numbers, but only if both convert properly.
+      const sheetDotNum = Number(sheetDot);
+      const queryDotNum = Number(queryDot);
+      if (!isNaN(sheetDotNum) && !isNaN(queryDotNum) && sheetDotNum === queryDotNum) {
+        console.log(`Numeric match found: ${sheetDotNum} === ${queryDotNum}`);
+        return true;
+      }
+      console.log(`No match for row: sheet [${sheetDot}] vs query [${queryDot}]`);
+      return false;
     });
 
     if (foundRow) {
       console.log('Match found:', foundRow);
     } else {
-      console.log('No match found for DOT:', targetDotString);
+      console.log('No match found for DOT:', queryDot);
     }
     return foundRow || null;
   } catch (error) {
