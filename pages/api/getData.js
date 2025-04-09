@@ -15,17 +15,18 @@ async function getSheetData(dot) {
       spreadsheetId,
       range,
     });
+
     const rows = response.data.values;
     if (!rows || rows.length === 0) {
       console.error('No rows found in the sheet.');
       return null;
     }
 
-    // Use the first row as headers; trim each header.
+    // The first row should have your headers
     const headers = rows[0].map(header => header.trim());
-    console.log('Headers found:', headers);
+    console.log('Headers:', headers);
 
-    // Map rows to objects, trimming each cell.
+    // Build an array of objects for all subsequent rows.
     const dataObjects = rows.slice(1).map((row, rowIndex) => {
       const rowObj = {};
       headers.forEach((header, colIndex) => {
@@ -35,28 +36,28 @@ async function getSheetData(dot) {
       });
       return rowObj;
     });
+    console.log('Data objects:', dataObjects);
 
-    // Normalize the DOT value for comparison.
+    // Normalize the query DOT for comparison.
     const targetDot = dot.toString().trim().toLowerCase();
-    console.log('Searching for DOT:', targetDot);
-
-    // Check if header "DOT" exists
-    if (!headers.includes('DOT')) {
-      console.warn('Header "DOT" not found. Headers:', headers);
-    }
+    console.log('Target DOT:', `[${targetDot}]`);
 
     // Find a row where the DOT value (normalized) matches.
-    const foundRow = dataObjects.find((row) => {
-      return (row.DOT || '').toLowerCase() === targetDot;
+    let foundRow = null;
+    dataObjects.forEach((row, index) => {
+      const sheetDot = (row.DOT || '').toString().trim().toLowerCase();
+      console.log(`Row ${index + 2} DOT: [${sheetDot}] compared to target [${targetDot}]`);
+      if (sheetDot === targetDot) {
+        foundRow = row;
+      }
     });
 
     if (foundRow) {
-      console.log('Found row:', foundRow);
+      console.log('Match found:', foundRow);
     } else {
-      console.log(`No match found for DOT: ${targetDot}`);
+      console.log('No match found for DOT:', targetDot);
     }
-
-    return foundRow || null;
+    return foundRow;
   } catch (error) {
     console.error('Error fetching data from Google Sheets:', error);
     return null;
@@ -65,13 +66,11 @@ async function getSheetData(dot) {
 
 export default async function handler(req, res) {
   const { dot } = req.query;
-
   if (!dot) {
     return res.status(400).json({ error: 'DOT query parameter is missing', row: null });
   }
 
   const foundRow = await getSheetData(dot);
-
   if (foundRow) {
     return res.status(200).json({ row: foundRow });
   } else {
