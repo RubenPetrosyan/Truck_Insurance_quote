@@ -11,14 +11,14 @@ export default function Home() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    if (!dot) {
+    if (!dot.trim()) {
       setError('Please enter a DOT number.');
       return;
     }
     try {
       const res = await fetch(`/api/getData?dot=${dot}`);
       const data = await res.json();
-      if (data.error || !data) {
+      if (data.error || !data.found) {
         setError("Sorry, your DOT number isn't found.");
       } else {
         router.push(`/view?dot=${dot}`);
@@ -40,7 +40,7 @@ export default function Home() {
         <form onSubmit={handleSubmit} className={styles.form}>
           <input
             type="text"
-            placeholder="Enter DOT number"
+            placeholder="DOT number"
             value={dot}
             onChange={(e) => setDot(e.target.value)}
             className={styles.input}
