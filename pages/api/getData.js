@@ -22,11 +22,11 @@ async function getSheetData(dot) {
       return null;
     }
 
-    // The first row should have your headers
+    // Process the headers, trimming any extra spaces.
     const headers = rows[0].map(header => header.trim());
     console.log('Headers:', headers);
 
-    // Build an array of objects for all subsequent rows.
+    // Map the subsequent rows to objects.
     const dataObjects = rows.slice(1).map((row, rowIndex) => {
       const rowObj = {};
       headers.forEach((header, colIndex) => {
@@ -38,26 +38,19 @@ async function getSheetData(dot) {
     });
     console.log('Data objects:', dataObjects);
 
-    // Normalize the query DOT for comparison.
-    const targetDot = dot.toString().trim().toLowerCase();
-    console.log('Target DOT:', `[${targetDot}]`);
+    // Convert the target DOT to a number
+    const targetDot = Number(dot);
+    console.log('Target DOT as number:', targetDot);
 
-    // Find a row where the DOT value (normalized) matches.
-    let foundRow = null;
-    dataObjects.forEach((row, index) => {
-      const sheetDot = (row.DOT || '').toString().trim().toLowerCase();
-      console.log(`Row ${index + 2} DOT: [${sheetDot}] compared to target [${targetDot}]`);
-      if (sheetDot === targetDot) {
-        foundRow = row;
-      }
-    });
+    // Compare spreadsheet values as numbers.
+    const foundRow = dataObjects.find(row => Number(row.DOT) === targetDot);
 
     if (foundRow) {
       console.log('Match found:', foundRow);
     } else {
       console.log('No match found for DOT:', targetDot);
     }
-    return foundRow;
+    return foundRow || null;
   } catch (error) {
     console.error('Error fetching data from Google Sheets:', error);
     return null;
