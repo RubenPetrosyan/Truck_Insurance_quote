@@ -7,20 +7,18 @@
   padding: 1rem;
 }
 
+/* Scope global label styling under the .container local class */
+.container :global(label) {
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
 /* Header style for titles or section headings */
 .header {
   font-size: 1.5rem;
   font-weight: bold;
   margin-bottom: 1rem;
-}
-
-/* Global styling for label elements */
-:global {
-  label {
-    font-size: 1rem;
-    margin-bottom: 0.5rem;
-    display: block;
-  }
 }
 
 /* Local class for form fields */
