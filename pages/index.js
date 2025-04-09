@@ -18,9 +18,10 @@ export default function Home() {
     try {
       const res = await fetch(`/api/getData?dot=${dot}`);
       const data = await res.json();
-      if (data.error || !data.found) {
+      if (!data.row) {
         setError("Sorry, your DOT number isn't found.");
       } else {
+        // You can also add any data processing logic if needed
         router.push(`/view?dot=${dot}`);
       }
     } catch (err) {
