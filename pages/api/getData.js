@@ -1,64 +1,67 @@
+// pages/api/getData.js
 import { google } from 'googleapis';
 
-export default async function handler(req, res) {
-  const { dot } = req.query;
-  console.log("Incoming dot query:", dot);
+async function getSheetData(dot) {
+  // Parse Service Account credentials from the environment variable.
+  const credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_CREDENTIALS);
 
-  if (!dot) {
-    return res.status(400).json({ error: 'Missing DOT query parameter.' });
-  }
+  // Create a GoogleAuth instance with read-only scope.
+  const auth = new google.auth.GoogleAuth({
+    credentials,
+    scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
+  });
 
-  let credentials;
-  try {
-    credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_CREDENTIALS);
-  } catch (err) {
-    console.error("❌ Failed to parse service account credentials:", err.message);
-    return res.status(500).json({ error: 'Invalid service account credentials format.' });
-  }
+  const sheets = google.sheets({ version: 'v4', auth });
 
-  let authClient;
-  try {
-    authClient = new google.auth.GoogleAuth({
-      credentials,
-      scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
-    });
-  } catch (err) {
-    console.error("❌ GoogleAuth setup error:", err.message);
-    return res.status(500).json({ error: 'Failed to initialize Google Auth.' });
-  }
-
-  const sheets = google.sheets({ version: 'v4', auth: authClient });
-  const spreadsheetId = '1_HsGOVbbsDPb30eCExyN5gedVFq3dLrU0ItmV5wasfc';
+  // Ensure your spreadsheetId is set in the environment variables.
+  const spreadsheetId = process.env.SPREADSHEET_ID;
+  // Adjust this range to match your sheet name and columns.
   const range = 'Sheet1!A:Z';
 
   try {
-    const result = await sheets.spreadsheets.values.get({ spreadsheetId, range });
-    const rows = result.data.values;
-
-    if (!rows || rows.length < 2) {
-      console.warn("⚠️ No data rows found.");
-      return res.status(404).json({ error: 'No data found in the spreadsheet.' });
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId,
+      range,
+    });
+    const rows = response.data.values;
+    if (!rows || rows.length === 0) {
+      return null;
     }
 
+    // Assume first row holds headers.
     const headers = rows[0];
-    const dataRows = rows.slice(1).map((row) => {
-      const rowObj = {};
-      headers.forEach((header, idx) => {
-        rowObj[header] = row[idx] || '';
+    const dataRows = rows.slice(1);
+
+    // Map each row to an object using the headers.
+    const dataObjects = dataRows.map((row) => {
+      const obj = {};
+      headers.forEach((header, index) => {
+        obj[header] = row[index] || '';
       });
-      return rowObj;
+      return obj;
     });
 
-    const match = dataRows.find(row => row.DOT === dot);
-    console.log("✅ Match found:", match);
+    // Search for a row where the DOT matches exactly.
+    return dataObjects.find((row) => row.DOT === dot) || null;
+  } catch (error) {
+    console.error('Error fetching data from Google Sheets:', error);
+    return null;
+  }
+}
 
-    if (!match) {
-      return res.status(404).json({ error: `No data found for DOT: ${dot}` });
-    }
+export default async function handler(req, res) {
+  const { dot } = req.query;
 
-    return res.status(200).json({ row: match });
-  } catch (err) {
-    console.error("❌ Error fetching data from Google Sheets:", err.message);
-    return res.status(500).json({ error: 'Error accessing Google Sheets API.' });
+  if (!dot) {
+    res.status(400).json({ error: 'DOT query parameter is missing', row: null });
+    return;
+  }
+
+  const foundRow = await getSheetData(dot);
+
+  if (!foundRow) {
+    res.status(404).json({ error: 'DOT number not found', row: null });
+  } else {
+    res.status(200).json({ row: foundRow });
   }
 }
