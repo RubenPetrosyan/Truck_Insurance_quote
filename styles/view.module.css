@@ -1,47 +1,39 @@
-/* styles/view.module.css */
-.viewContainer {
-    max-width: 600px;
-    margin: 2rem auto;
-    padding: 1rem;
-    background-color: #fafafa;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  }
-  
-  .viewContainer h1 {
-    text-align: center;
-    color: #333;
-  }
-  
-  .card {
-    background: #fff;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    padding: 1rem;
-    margin-bottom: 1rem;
-  }
-  
-  .actions {
-    text-align: center;
-    margin-top: 1rem;
-  }
-  
-  .editBtn {
-    padding: 0.5rem 1rem;
-    background-color: #0070f3;
-    color: #fff;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-  }
-  
-  .editBtn:hover {
-    background-color: #005bb5;
-  }
-  
-  .loading {
-    text-align: center;
-    padding: 2rem;
-    font-size: 1.2rem;
-  }
-  
+.container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  padding: 20px;
+  align-items: center;
+  justify-content: center;
+}
+
+.main {
+  max-width: 600px;
+  width: 100%;
+  text-align: center;
+}
+
+.card {
+  margin: 20px 0;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.button {
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  background-color: #0070f3;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 5px;
+  transition: background-color 0.3s ease;
+}
+
+.button:hover {
+  background-color: #005bb5;
+}
+
+.error {
+  color: red;
+}
