@@ -11,7 +11,7 @@ export default function Home() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-
+    
     if (!dot.trim()) {
       setError('Please enter a DOT number.');
       return;
@@ -21,7 +21,7 @@ export default function Home() {
       const res = await fetch(`/api/getData?dot=${dot}`);
       const data = await res.json();
 
-      // IMPORTANT: Check for data.row here
+      // Check for data.row (API should return { row: ... } when found)
       if (!data.row) {
         setError("Sorry, your DOT number isn't found.");
       } else {
