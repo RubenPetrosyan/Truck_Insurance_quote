@@ -2,52 +2,53 @@
 import { google } from 'googleapis';
 
 async function getSheetData(dot) {
-  // Parse Service Account credentials from the environment variable.
-  const credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_CREDENTIALS);
-
-  // Create a GoogleAuth instance with read-only scope.
-  const auth = new google.auth.GoogleAuth({
-    credentials,
-    scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
-  });
-
-  const sheets = google.sheets({ version: 'v4', auth });
-
-  // Ensure your spreadsheetId is set in the environment variables.
-  const spreadsheetId = process.env.SPREADSHEET_ID;
-  // Adjust this range to match your sheet name and columns.
-  const range = 'Sheet1!A:Z';
-
   try {
+    // Parse Service Account credentials from the environment variable.
+    const credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_CREDENTIALS);
+
+    // Create GoogleAuth instance with read-only scope.
+    const auth = new google.auth.GoogleAuth({
+      credentials,
+      scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
+    });
+
+    const sheets = google.sheets({ version: 'v4', auth });
+
+    // Get spreadsheet ID from environment variable and adjust range if needed.
+    const spreadsheetId = process.env.SPREADSHEET_ID;
+    const range = 'Sheet1!A:Z';
+
+    // Fetch the data from the sheet.
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId,
       range,
     });
+
     const rows = response.data.values;
     if (!rows || rows.length === 0) {
+      console.error('No rows found in the sheet.');
       return null;
     }
 
-    // Assume the first row holds headers.
+    // Use the first row as headers.
     const headers = rows[0];
     const dataRows = rows.slice(1);
 
-    // Map each row to an object using the headers.
+    // Map rows to objects, trimming values.
     const dataObjects = dataRows.map((row) => {
-      const obj = {};
+      const rowObj = {};
       headers.forEach((header, index) => {
-        obj[header] = row[index] || '';
+        rowObj[header] = (row[index] || '').toString().trim();
       });
-      return obj;
+      return rowObj;
     });
 
-    // Compare DOT values after trimming whitespace.
-    const foundRow = dataObjects.find((row) => {
-      // If row.DOT is null or undefined, default to empty string.
-      const sheetDot = (row.DOT || '').toString().trim();
-      const queryDot = dot.toString().trim();
-      return sheetDot === queryDot;
-    });
+    // Debug log: see all rows fetched.
+    console.log('Data objects retrieved:', dataObjects);
+
+    // Trim the query dot and search for an exact match.
+    const targetDot = dot.toString().trim();
+    const foundRow = dataObjects.find((row) => row.DOT === targetDot);
 
     return foundRow || null;
   } catch (error) {
@@ -60,15 +61,14 @@ export default async function handler(req, res) {
   const { dot } = req.query;
 
   if (!dot) {
-    res.status(400).json({ error: 'DOT query parameter is missing', row: null });
-    return;
+    return res.status(400).json({ error: 'DOT query parameter is missing', row: null });
   }
 
   const foundRow = await getSheetData(dot);
 
-  if (!foundRow) {
-    res.status(404).json({ error: 'DOT number not found', row: null });
+  if (foundRow) {
+    return res.status(200).json({ row: foundRow });
   } else {
-    res.status(200).json({ row: foundRow });
+    return res.status(404).json({ error: 'DOT number not found', row: null });
   }
 }
