@@ -1,59 +1,58 @@
-/* styles/edit.css */
+/* Container for the edit page */
+.container {
+  display: flex;
+  flex-direction: column;
+  margin: 0 auto;
+  max-width: 600px;
+  padding: 1rem;
+}
 
-.edit-container {
-    max-width: 600px;
-    margin: 2rem auto;
-    padding: 1rem;
-    background-color: #f9f9f9;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-  }
-  
-  .edit-form {
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .form-group {
-    margin-bottom: 1rem;
-  }
-  
-  label {
-    font-weight: bold;
-    margin-bottom: 0.5rem;
-    display: block;
-  }
-  
-  input {
-    width: 100%;
+/* Header style for titles or section headings */
+.header {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+/* Styling for label elements: converted to a global selector */
+:global(label) {
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+/* Local class for form fields */
+.inputField {
+  padding: 0.5rem;
+  margin-bottom: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  width: 100%;
+}
+
+/* Button styling */
+.button {
+  padding: 0.75rem 1.5rem;
+  background-color: #0070f3;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.3s ease;
+}
+
+.button:hover {
+  background-color: #005bb5;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+  .container {
     padding: 0.5rem;
-    border: 1px solid #ccc;
-    border-radius: 4px;
   }
   
-  .submit-btn {
-    padding: 0.75rem 1rem;
-    background-color: #0070f3;
-    color: #fff;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    margin-top: 1rem;
+  .header {
+    font-size: 1.3rem;
   }
-  
-  .submit-btn:hover {
-    background-color: #005bb5;
-  }
-  
-  .message {
-    margin-top: 1rem;
-    color: green;
-    text-align: center;
-  }
-  
-  .loading {
-    text-align: center;
-    padding: 2rem;
-    font-size: 1.2rem;
-  }
-  
+}
