@@ -28,7 +28,7 @@ async function getSheetData(dot) {
       return null;
     }
 
-    // Assume first row holds headers.
+    // Assume the first row holds headers.
     const headers = rows[0];
     const dataRows = rows.slice(1);
 
@@ -41,8 +41,15 @@ async function getSheetData(dot) {
       return obj;
     });
 
-    // Search for a row where the DOT matches exactly.
-    return dataObjects.find((row) => row.DOT === dot) || null;
+    // Compare DOT values after trimming whitespace.
+    const foundRow = dataObjects.find((row) => {
+      // If row.DOT is null or undefined, default to empty string.
+      const sheetDot = (row.DOT || '').toString().trim();
+      const queryDot = dot.toString().trim();
+      return sheetDot === queryDot;
+    });
+
+    return foundRow || null;
   } catch (error) {
     console.error('Error fetching data from Google Sheets:', error);
     return null;
