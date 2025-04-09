@@ -11,6 +11,7 @@ export default function ViewPage() {
   const [error, setError] = useState('');
 
   useEffect(() => {
+    if (!router.isReady) return; // Wait until router is fully ready
     if (dot) {
       fetch(`/api/getData?dot=${dot}`)
         .then((res) => res.json())
@@ -21,17 +22,16 @@ export default function ViewPage() {
             setError("Sorry, your DOT number isn't found.");
           }
         })
-        .catch(() => setError("Error fetching data"));
+        .catch((err) => {
+          console.error(err);
+          setError("Error fetching data");
+        });
     }
-  }, [dot]);
+  }, [router.isReady, dot]);
 
-  if (error) {
-    return <div className={styles.error}>{error}</div>;
-  }
-
-  if (!row) {
-    return <div className={styles.loading}>Loading...</div>;
-  }
+  if (!router.isReady) return null;
+  if (error) return <div className={styles.error}>{error}</div>;
+  if (!row) return <div className={styles.loading}>Loading...</div>;
 
   return (
     <div className={styles.container}>
