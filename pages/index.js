@@ -11,17 +11,20 @@ export default function Home() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+
     if (!dot.trim()) {
       setError('Please enter a DOT number.');
       return;
     }
+
     try {
       const res = await fetch(`/api/getData?dot=${dot}`);
       const data = await res.json();
+
+      // IMPORTANT: Check for data.row here
       if (!data.row) {
         setError("Sorry, your DOT number isn't found.");
       } else {
-        // You can also add any data processing logic if needed
         router.push(`/view?dot=${dot}`);
       }
     } catch (err) {
