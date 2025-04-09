@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
-import '../styles/edit.css';
+import '../styles/edit.module.css';
 
 export default function Edit() {
   const router = useRouter();
