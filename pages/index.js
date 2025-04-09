@@ -11,7 +11,7 @@ export default function Home() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    
+
     if (!dot.trim()) {
       setError('Please enter a DOT number.');
       return;
@@ -20,14 +20,17 @@ export default function Home() {
     try {
       const res = await fetch(`/api/getData?dot=${dot}`);
       const data = await res.json();
+      console.log("API response:", data); // For debugging
 
-      // Check for data.row (API should return { row: ... } when found)
-      if (!data.row) {
-        setError("Sorry, your DOT number isn't found.");
-      } else {
+      if (res.ok && data.row) {
+        // Data found so redirect to View page.
         router.push(`/view?dot=${dot}`);
+      } else {
+        // Either a non-200 status or data.row is missing.
+        setError("Sorry, your DOT number isn't found.");
       }
     } catch (err) {
+      console.error("Error fetching DOT data:", err);
       setError("Sorry, your DOT number isn't found.");
     }
   };
