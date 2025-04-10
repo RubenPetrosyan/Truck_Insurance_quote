@@ -51,7 +51,7 @@ export default function EditPage() {
       readOnly = true;
     }
     if (key.toLowerCase() === 'url') {
-      inputValue = `https://yourdomain.com/client/${dot}`;
+      inputValue = `https://truck-insurance-quote.vercel.app/view?dot=${dot}`;
       readOnly = true;
     }
     return (
