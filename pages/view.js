@@ -11,7 +11,7 @@ export default function ViewPage() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (!router.isReady) return; // Wait until router is fully ready
+    if (!router.isReady) return;
     if (dot) {
       fetch(`/api/getData?dot=${dot}`)
         .then((res) => res.json())
@@ -42,14 +42,20 @@ export default function ViewPage() {
       <main className={styles.main}>
         <h1>Client Data for DOT: {dot}</h1>
         <div className={styles.card}>
-          {Object.entries(row).map(([key, value]) => (
-            <p key={key}>
-              <strong>{key}:</strong> {value}
-            </p>
-          ))}
+          {/* New left-aligned content block */}
+          <div className={styles.leftContent}>
+            {Object.entries(row).map(([key, value]) => {
+              if (!value) return null;
+              return (
+                <p key={key}>
+                  <strong>{key}:</strong> {value}
+                </p>
+              );
+            })}
+          </div>
         </div>
-        <Link href={`/edit?dot=${dot}`}>
-          <a className={styles.button}>Edit Data</a>
+        <Link href={`/edit?dot=${dot}`} className={styles.button}>
+          Edit Data
         </Link>
       </main>
     </div>

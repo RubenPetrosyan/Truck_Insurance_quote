@@ -3,5 +3,8 @@
   "/_error": "pages/_error.js",
   "/_document": "pages/_document.js",
   "/": "pages/index.js",
-  "/api/getData": "pages/api/getData.js"
+  "/view": "pages/view.js",
+  "/edit": "pages/edit.js",
+  "/api/getData": "pages/api/getData.js",
+  "/api/updateData": "pages/api/updateData.js"
 }

@@ -8,59 +8,140 @@ export default function EditPage() {
   const { dot } = router.query;
   const [row, setRow] = useState(null);
   const [error, setError] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Define groups for compact layout
+  const groups = [
+    {
+      // Group 1: DOT, Phone, Cell Num
+      fields: ["DOT", "Phone", "Cell Num"],
+    },
+    {
+      // Group 2: Mailing City, Mailing State, Mailing ZIP
+      fields: ["Mailing City", "Mailing State", "Mailing ZIP"],
+    },
+    {
+      // Group 3: Email and Policy_Expiration_Date
+      fields: ["Email", "Policy_Expiration_Date"],
+    },
+  ];
 
   useEffect(() => {
-    if (dot) {
-      fetch(`/api/getData?dot=${dot}`)
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.row) {
-            setRow(data.row);
-          } else {
-            setError("Sorry, your DOT number isn't found.");
-          }
-        })
-        .catch(() => setError("Error fetching data"));
-    }
+    if (!dot) return;
+    fetch(`/api/getData?dot=${dot}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.row) {
+          setRow(data.row);
+        } else {
+          setError("Sorry, your DOT number isn't found.");
+        }
+      })
+      .catch(() => setError('Error fetching data'));
   }, [dot]);
 
-  if (error) {
-    return <div className={styles.error}>{error}</div>;
-  }
+  if (error) return <div className={styles.error}>{error}</div>;
+  if (!row) return <div className={styles.loading}>Loading...</div>;
 
-  if (!row) {
-    return <div className={styles.loading}>Loading...</div>;
-  }
+  // Helper function to render an input field for a given key
+  const renderField = (key, value) => {
+    let inputValue = value;
+    let readOnly = false;
+    if (key === 'DOT') {
+      readOnly = true;
+    }
+    if (key.toLowerCase() === 'url') {
+      inputValue = `https://yourdomain.com/client/${dot}`;
+      readOnly = true;
+    }
+    return (
+      <div key={key} className={`${styles.field} ${styles.fieldCompact}`}>
+        <label htmlFor={key}>{key}</label>
+        <input
+          id={key}
+          name={key}
+          type="text"
+          defaultValue={inputValue}
+          readOnly={readOnly}
+        />
+      </div>
+    );
+  };
+
+  // Collect keys that are in any group
+  const groupedKeys = groups.flatMap((group) => group.fields);
+  // And the remaining fields are those in row not present in any group.
+  const remainingFields = Object.entries(row).filter(
+    ([key]) => !groupedKeys.includes(key)
+  );
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Post updated data to /api/updateData.
-    // For now, you can log updated values or display a message.
+    setIsSaving(true);
+    const updatedData = {};
+
+    // Collect all data from inputs
+    Object.entries(row).forEach(([key]) => {
+      const input = e.target.elements[key];
+      if (input) {
+        updatedData[key] = input.value;
+      }
+    });
+
+    fetch('/api/updateData', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ DOT: row.DOT, ...updatedData }),
+    })
+      .then((res) => res.json())
+      .then((result) => {
+        if (result.error) {
+          alert(`Error: ${result.error}`);
+        } else {
+          alert('Data updated successfully!');
+          router.push(`/view?dot=${dot}`);
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+        alert('Failed to update data.');
+      })
+      .finally(() => setIsSaving(false));
   };
 
   return (
     <div className={styles.container}>
       <Head>
-        <title>Edit Client Data</title>
+        <title>Edit Client Data for DOT: {dot}</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       </Head>
       <main className={styles.main}>
         <h1>Edit Client Data for DOT: {dot}</h1>
-        <form onSubmit={handleSubmit} className={styles.form}>
-          {Object.entries(row).map(([key, value]) => (
-            <div key={key} className={styles.field}>
-              <label>{key}</label>
-              <input
-                type="text"
-                defaultValue={value}
-                // Optionally handle onChange to update local state
-              />
-            </div>
-          ))}
-          <button type="submit" className={styles.button}>
-            Save Changes
-          </button>
-        </form>
+        <div className={styles.formCard}>
+          <form onSubmit={handleSubmit} className={styles.form}>
+            {/* Render each defined group */}
+            {groups.map((group, i) => (
+              <div key={i} className={styles.formRow}>
+                {group.fields.map((fieldKey) => {
+                  if (fieldKey in row) {
+                    return renderField(fieldKey, row[fieldKey]);
+                  }
+                  return null;
+                })}
+              </div>
+            ))}
+            {/* Render any remaining fields on their own row */}
+            {remainingFields.map(([key, value]) => (
+              <div key={key} className={styles.formRow}>
+                {renderField(key, value)}
+              </div>
+            ))}
+            <button type="submit" className={styles.button} disabled={isSaving}>
+              {isSaving && <span className={styles.spinner}></span>}
+              {isSaving ? 'Saving...' : 'Save Changes'}
+            </button>
+          </form>
+        </div>
       </main>
     </div>
   );

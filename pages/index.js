@@ -6,6 +6,7 @@ import styles from '../styles/index.module.css';
 export default function Home() {
   const [dot, setDot] = useState('');
   const [error, setError] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
   const router = useRouter();
 
   const handleSubmit = async (e) => {
@@ -17,21 +18,21 @@ export default function Home() {
       return;
     }
 
+    setIsSearching(true);
     try {
       const res = await fetch(`/api/getData?dot=${dot}`);
       const data = await res.json();
-      console.log("API response:", data); // For debugging
 
       if (res.ok && data.row) {
-        // Data found so redirect to View page.
         router.push(`/view?dot=${dot}`);
       } else {
-        // Either a non-200 status or data.row is missing.
         setError("Sorry, your DOT number isn't found.");
       }
     } catch (err) {
       console.error("Error fetching DOT data:", err);
       setError("Sorry, your DOT number isn't found.");
+    } finally {
+      setIsSearching(false);
     }
   };
 
@@ -52,8 +53,9 @@ export default function Home() {
             onChange={(e) => setDot(e.target.value)}
             className={styles.input}
           />
-          <button type="submit" className={styles.button}>
-            Search
+          <button type="submit" className={styles.button} disabled={isSearching}>
+            {isSearching && <span className={styles.spinner}></span>}
+            {isSearching ? ' Searching...' : 'Search'}
           </button>
         </form>
         {error && <p className={styles.error}>{error}</p>}
