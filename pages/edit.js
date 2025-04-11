@@ -14,15 +14,12 @@ export default function EditPage() {
   // Define groups for compact layout (do NOT include "Submission Status")
   const groups = [
     {
-      // Group 1: DOT, Phone, Cell Num
       fields: ["DOT", "Phone", "Cell Num"],
     },
     {
-      // Group 2: Mailing City, Mailing State, Mailing ZIP
       fields: ["Mailing City", "Mailing State", "Mailing ZIP"],
     },
     {
-      // Group 3: Email and Policy_Expiration_Date
       fields: ["Email", "Policy_Expiration_Date"],
     },
   ];
@@ -44,10 +41,8 @@ export default function EditPage() {
   if (error) return <div className={styles.error}>{error}</div>;
   if (!row) return <div className={styles.loading}>Loading...</div>;
 
-  // Custom message for title and header
   const customMessage = `Verify and update only Outdated Information. If everything is correct, just submit the information. :${dot}`;
 
-  // Helper function to render an input field for a given key
   const renderField = (key, value) => {
     let inputValue = value;
     let readOnly = false;
@@ -76,11 +71,9 @@ export default function EditPage() {
     );
   };
 
-  // Collect keys that are included in any group
   const groupedKeys = groups.flatMap((group) => group.fields);
-  // Exclude "Submission Status" so that it doesn't show in the edit form
-  const remainingFields = Object.entries(row).filter(([key]) =>
-    !groupedKeys.includes(key) && key.trim().toLowerCase() !== "submission status"
+  const remainingFields = Object.entries(row).filter(
+    ([key]) => !groupedKeys.includes(key) && key.trim().toLowerCase() !== "submission status"
   );
 
   const handleSubmit = (e) => {
@@ -88,7 +81,6 @@ export default function EditPage() {
     setIsSaving(true);
     const updatedData = {};
 
-    // Collect all data from inputs
     Object.entries(row).forEach(([key]) => {
       const input = e.target.elements[key];
       if (input) {
@@ -106,12 +98,11 @@ export default function EditPage() {
         if (result.error) {
           alert(`Error: ${result.error}`);
         } else {
-          // Instead of an alert, show a success message on the UI.
           setSuccessMessage("You have successfully submitted your information. One of our agents will contact you shortly.");
-          // Optionally redirect to the view page after a short delay:
+          // Increase delay to 5000 ms for visibility.
           setTimeout(() => {
             router.push(`/view?dot=${dot}`);
-          }, 3000);
+          }, 5000);
         }
       })
       .catch((err) => {
@@ -136,7 +127,6 @@ export default function EditPage() {
         )}
         <div className={styles.formCard}>
           <form onSubmit={handleSubmit} className={styles.form}>
-            {/* Render each defined group */}
             {groups.map((group, i) => (
               <div key={i} className={styles.formRow}>
                 {group.fields.map((fieldKey) => {
@@ -147,7 +137,6 @@ export default function EditPage() {
                 })}
               </div>
             ))}
-            {/* Render any remaining fields on their own row */}
             {remainingFields.map(([key, value]) => (
               <div key={key} className={styles.formRow}>
                 {renderField(key, value)}
