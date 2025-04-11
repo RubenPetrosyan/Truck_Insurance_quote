@@ -10,7 +10,7 @@ export default function EditPage() {
   const [error, setError] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
-  // Define groups for compact layout
+  // Define groups for compact layout (do NOT include "Submission Status")
   const groups = [
     {
       // Group 1: DOT, Phone, Cell Num
@@ -44,7 +44,7 @@ export default function EditPage() {
   if (!row) return <div className={styles.loading}>Loading...</div>;
 
   // Custom message for title and header
-  const customMessage = `Verify and update only outdated information. If all information is correct, submit it as is. :${dot}`;
+  const customMessage = `Verify and update only Outdated Information. If everything is correct, just submit the information. :${dot}`;
 
   // Helper function to render an input field for a given key
   const renderField = (key, value) => {
@@ -75,11 +75,11 @@ export default function EditPage() {
     );
   };
 
-  // Collect keys that are in any group
+  // Collect keys that are included in any group
   const groupedKeys = groups.flatMap((group) => group.fields);
-  // And the remaining fields are those in row not present in any group.
-  const remainingFields = Object.entries(row).filter(
-    ([key]) => !groupedKeys.includes(key)
+  // Exclude "Submission Status" (case-insensitive) so it does not show in the edit form
+  const remainingFields = Object.entries(row).filter(([key]) =>
+    !groupedKeys.includes(key) && key.trim().toLowerCase() !== "submission status"
   );
 
   const handleSubmit = (e) => {
