@@ -1,65 +1,155 @@
-import { google } from 'googleapis';
+import Head from 'next/head';
+import { useRouter } from 'next/router';
+import { useEffect, useState } from 'react';
+import styles from '../styles/edit.module.css';
 
-export default async function handler(req, res) {
-  if (req.method !== 'POST')
-    return res.status(405).json({ error: 'Method Not Allowed' });
+export default function EditPage() {
+  const router = useRouter();
+  const { dot } = router.query;
+  const [row, setRow] = useState(null);
+  const [error, setError] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
 
-  const { DOT, ...updates } = req.body;
-  if (!DOT)
-    return res.status(400).json({ error: 'Missing DOT' });
+  // Define groups for compact layout (do not include "Submission Status")
+  const groups = [
+    {
+      // Group 1: DOT, Phone, Cell Num
+      fields: ["DOT", "Phone", "Cell Num"],
+    },
+    {
+      // Group 2: Mailing City, Mailing State, Mailing ZIP
+      fields: ["Mailing City", "Mailing State", "Mailing ZIP"],
+    },
+    {
+      // Group 3: Email and Policy_Expiration_Date
+      fields: ["Email", "Policy_Expiration_Date"],
+    },
+  ];
 
-  let credentials;
-  try {
-    credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_CREDENTIALS);
-  } catch {
-    return res.status(500).json({ error: 'Invalid credentials JSON' });
-  }
+  useEffect(() => {
+    if (!dot) return;
+    fetch(`/api/getData?dot=${dot}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.row) {
+          setRow(data.row);
+        } else {
+          setError("Sorry, your DOT number isn't found.");
+        }
+      })
+      .catch(() => setError('Error fetching data'));
+  }, [dot]);
 
-  const auth = new google.auth.GoogleAuth({
-    credentials,
-    scopes: ['https://www.googleapis.com/auth/spreadsheets'],
-  });
-  const sheets = google.sheets({ version: 'v4', auth: await auth.getClient() });
-  const spreadsheetId = '1_HsGOVbbsDPb30eCExyN5gedVFq3dLrU0ItmV5wasfc';
-  const range = 'Sheet1!A:Z'; // adjust if needed
+  if (error) return <div className={styles.error}>{error}</div>;
+  if (!row) return <div className={styles.loading}>Loading...</div>;
 
-  try {
-    const { data } = await sheets.spreadsheets.values.get({ spreadsheetId, range });
-    const rows = data.values || [];
-    if (rows.length < 2)
-      return res.status(404).json({ error: 'No data' });
+  // Custom message for title and header
+  const customMessage = `Verify and update only Outdated Information. If everything is correct, just submit the information. :${dot}`;
 
-    const headers = rows[0];
-    const dotIndex = headers.indexOf('DOT');
-    const rowIndex = rows.findIndex(r => (r[dotIndex] || '').trim() === DOT.trim());
-    if (rowIndex < 1)
-      return res.status(404).json({ error: 'DOT not found' });
+  // Helper function to render an input field for a given key
+  const renderField = (key, value) => {
+    let inputValue = value;
+    let readOnly = false;
+    let inputStyle = {};
+    if (key === 'DOT') {
+      readOnly = true;
+      inputStyle = { backgroundColor: '#f2f2f2', cursor: 'not-allowed' };
+    }
+    if (key.toLowerCase() === 'url') {
+      inputValue = `https://truck-insurance-quote.vercel.app/view?dot=${dot}`;
+      readOnly = true;
+      inputStyle = { backgroundColor: '#f2f2f2', cursor: 'not-allowed' };
+    }
+    return (
+      <div key={key} className={`${styles.field} ${styles.fieldCompact}`}>
+        <label htmlFor={key}>{key}</label>
+        <input
+          id={key}
+          name={key}
+          type="text"
+          defaultValue={inputValue}
+          readOnly={readOnly}
+          style={inputStyle}
+        />
+      </div>
+    );
+  };
 
-    const updatedRow = [...rows[rowIndex]];
+  // Collect keys that are in any group
+  const groupedKeys = groups.flatMap((group) => group.fields);
+  // Exclude "Submission Status" so that it doesn't show in the edit form
+  const remainingFields = Object.entries(row).filter(
+    ([key]) => !groupedKeys.includes(key) && key !== "Submission Status"
+  );
 
-    // Update row values based on updates from the request
-    headers.forEach((h, i) => {
-      if (h.trim() in updates) {
-        updatedRow[i] = updates[h.trim()];
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setIsSaving(true);
+    const updatedData = {};
+
+    // Collect all data from inputs
+    Object.entries(row).forEach(([key]) => {
+      const input = e.target.elements[key];
+      if (input) {
+        updatedData[key] = input.value;
       }
     });
 
-    // Set the "Submission Status" column to "Submitted"
-    const submissionStatusIndex = headers.indexOf("Submission Status");
-    if (submissionStatusIndex > -1) {
-      updatedRow[submissionStatusIndex] = "Submitted";
-    }
+    fetch('/api/updateData', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ DOT: row.DOT, ...updatedData }),
+    })
+      .then((res) => res.json())
+      .then((result) => {
+        if (result.error) {
+          alert(`Error: ${result.error}`);
+        } else {
+          alert('Data updated successfully!');
+          router.push(`/view?dot=${dot}`);
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+        alert('Failed to update data.');
+      })
+      .finally(() => setIsSaving(false));
+  };
 
-    const updateRange = `Sheet1!A${rowIndex + 1}:Z${rowIndex + 1}`;
-    await sheets.spreadsheets.values.update({
-      spreadsheetId,
-      range: updateRange,
-      valueInputOption: 'USER_ENTERED',
-      requestBody: { values: [updatedRow] },
-    });
-
-    res.status(200).json({ message: 'Data updated' });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+  return (
+    <div className={styles.container}>
+      <Head>
+        <title>{customMessage}</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      </Head>
+      <main className={styles.main}>
+        <h1>{customMessage}</h1>
+        <div className={styles.formCard}>
+          <form onSubmit={handleSubmit} className={styles.form}>
+            {/* Render each defined group */}
+            {groups.map((group, i) => (
+              <div key={i} className={styles.formRow}>
+                {group.fields.map((fieldKey) => {
+                  if (fieldKey in row) {
+                    return renderField(fieldKey, row[fieldKey]);
+                  }
+                  return null;
+                })}
+              </div>
+            ))}
+            {/* Render any remaining fields on their own row */}
+            {remainingFields.map(([key, value]) => (
+              <div key={key} className={styles.formRow}>
+                {renderField(key, value)}
+              </div>
+            ))}
+            <button type="submit" className={styles.button} disabled={isSaving}>
+              {isSaving && <span className={styles.spinner}></span>}
+              {isSaving ? 'Saving...' : 'Submit'}
+            </button>
+          </form>
+        </div>
+      </main>
+    </div>
+  );
 }
