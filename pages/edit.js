@@ -43,16 +43,22 @@ export default function EditPage() {
   if (error) return <div className={styles.error}>{error}</div>;
   if (!row) return <div className={styles.loading}>Loading...</div>;
 
+  // Custom message for title and header
+  const customMessage = `Verify and update only outdated information. If all information is correct, submit it as is. :${dot}`;
+
   // Helper function to render an input field for a given key
   const renderField = (key, value) => {
     let inputValue = value;
     let readOnly = false;
+    let inputStyle = {};
     if (key === 'DOT') {
       readOnly = true;
+      inputStyle = { backgroundColor: '#f2f2f2', cursor: 'not-allowed' };
     }
     if (key.toLowerCase() === 'url') {
       inputValue = `https://truck-insurance-quote.vercel.app/view?dot=${dot}`;
       readOnly = true;
+      inputStyle = { backgroundColor: '#f2f2f2', cursor: 'not-allowed' };
     }
     return (
       <div key={key} className={`${styles.field} ${styles.fieldCompact}`}>
@@ -63,6 +69,7 @@ export default function EditPage() {
           type="text"
           defaultValue={inputValue}
           readOnly={readOnly}
+          style={inputStyle}
         />
       </div>
     );
@@ -112,11 +119,11 @@ export default function EditPage() {
   return (
     <div className={styles.container}>
       <Head>
-        <title>Edit Client Data for DOT: {dot}</title>
+        <title>{customMessage}</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       </Head>
       <main className={styles.main}>
-        <h1>Edit Client Data for DOT: {dot}</h1>
+        <h1>{customMessage}</h1>
         <div className={styles.formCard}>
           <form onSubmit={handleSubmit} className={styles.form}>
             {/* Render each defined group */}
@@ -138,7 +145,7 @@ export default function EditPage() {
             ))}
             <button type="submit" className={styles.button} disabled={isSaving}>
               {isSaving && <span className={styles.spinner}></span>}
-              {isSaving ? 'Saving...' : 'Save Changes'}
+              {isSaving ? 'Saving...' : 'Submit'}
             </button>
           </form>
         </div>
