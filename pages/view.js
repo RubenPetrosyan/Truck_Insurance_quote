@@ -55,7 +55,7 @@ export default function ViewPage() {
           </div>
         </div>
         <Link href={`/edit?dot=${dot}`} className={styles.button}>
-          Edit Data
+          Update
         </Link>
       </main>
     </div>
