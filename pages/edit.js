@@ -9,6 +9,7 @@ export default function EditPage() {
   const [row, setRow] = useState(null);
   const [error, setError] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
 
   // Define groups for compact layout (do NOT include "Submission Status")
   const groups = [
@@ -77,7 +78,7 @@ export default function EditPage() {
 
   // Collect keys that are included in any group
   const groupedKeys = groups.flatMap((group) => group.fields);
-  // Exclude "Submission Status" (case-insensitive) so it does not show in the edit form
+  // Exclude "Submission Status" so that it doesn't show in the edit form
   const remainingFields = Object.entries(row).filter(([key]) =>
     !groupedKeys.includes(key) && key.trim().toLowerCase() !== "submission status"
   );
@@ -105,8 +106,12 @@ export default function EditPage() {
         if (result.error) {
           alert(`Error: ${result.error}`);
         } else {
-          alert('Data updated successfully!');
-          router.push(`/view?dot=${dot}`);
+          // Instead of an alert, show a success message on the UI.
+          setSuccessMessage("You have successfully submitted your information. One of our agents will contact you shortly.");
+          // Optionally redirect to the view page after a short delay:
+          setTimeout(() => {
+            router.push(`/view?dot=${dot}`);
+          }, 3000);
         }
       })
       .catch((err) => {
@@ -124,6 +129,11 @@ export default function EditPage() {
       </Head>
       <main className={styles.main}>
         <h1>{customMessage}</h1>
+        {successMessage && (
+          <div className={styles.successMessage}>
+            {successMessage}
+          </div>
+        )}
         <div className={styles.formCard}>
           <form onSubmit={handleSubmit} className={styles.form}>
             {/* Render each defined group */}
