@@ -36,11 +36,11 @@ export default function ViewPage() {
   return (
     <div className={styles.container}>
       <Head>
-        <title>View Client Data</title>
+        <title>Tap Update to Review & Submit!</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       </Head>
       <main className={styles.main}>
-        <h1>Client Data for DOT: {dot}</h1>
+        <h1>Tap Update to Review & Submit: {dot}</h1>
         <div className={styles.card}>
           {/* New left-aligned content block */}
           <div className={styles.leftContent}>
