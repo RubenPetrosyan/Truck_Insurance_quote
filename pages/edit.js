@@ -44,7 +44,7 @@ export default function EditPage() {
   if (error) return <div className={styles.error}>{error}</div>;
   if (!row) return <div className={styles.loading}>Loading...</div>;
 
-  const customMessage = `Verify and update only Outdated Information. If everything is correct, just submit the information. :${dot}`;
+  const customMessage = `Update only outdated information. One of our agents will contact you to clarify the rest.`;
 
   // Helper function to render each field with special conditions
   const renderField = (key, value) => {
