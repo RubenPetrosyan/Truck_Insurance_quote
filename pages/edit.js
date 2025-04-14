@@ -46,23 +46,40 @@ export default function EditPage() {
 
   const customMessage = `Verify and update only Outdated Information. If everything is correct, just submit the information. :${dot}`;
 
-  // Helper function to render an input field for a given key
+  // Helper function to render each field with special conditions
   const renderField = (key, value) => {
     let inputValue = value;
     let readOnly = false;
     let inputStyle = {};
+    let labelText = key;
+
+    // DOT field: read-only, gray out.
     if (key === 'DOT') {
       readOnly = true;
       inputStyle = { backgroundColor: '#f2f2f2', cursor: 'not-allowed' };
     }
+    // URL field: read-only, gray out.
     if (key.toLowerCase() === 'url') {
       inputValue = `https://truck-insurance-quote.vercel.app/view?dot=${dot}`;
       readOnly = true;
       inputStyle = { backgroundColor: '#f2f2f2', cursor: 'not-allowed' };
     }
+    // Policy_Expiration_Date: make this read-only as well.
+    if (key === 'Policy_Expiration_Date') {
+      readOnly = true;
+      inputStyle = { backgroundColor: '#f2f2f2', cursor: 'not-allowed' };
+    }
+    // Phone field: rename to "Contact Phone" with red asterisk.
+    if (key === 'Phone') {
+      labelText = "Contact Phone";
+    }
+
     return (
       <div key={key} className={`${styles.field} ${styles.fieldCompact}`}>
-        <label htmlFor={key}>{key}</label>
+        <label htmlFor={key}>
+          {labelText}
+          {key === 'Phone' && <span style={{ color: 'red' }}> *</span>}
+        </label>
         <input
           id={key}
           name={key}
@@ -75,10 +92,9 @@ export default function EditPage() {
     );
   };
 
-  // List of keys that are in any defined group.
+  // Get keys that are part of defined groups
   const groupedKeys = groups.flatMap((group) => group.fields);
-
-  // Exclude "Submission Status" and "Notified" from being rendered in the edit form.
+  // Exclude unwanted fields from rendering: "Submission Status" and "Notified"
   const remainingFields = Object.entries(row).filter(
     ([key]) =>
       !groupedKeys.includes(key) &&
@@ -89,9 +105,17 @@ export default function EditPage() {
   const handleSubmit = (e) => {
     e.preventDefault();
     setIsSaving(true);
-    const updatedData = {};
 
-    // Collect all data from inputs
+    // Check for required field: Phone (Contact Phone)
+    const phoneValue = e.target.elements["Phone"]?.value || "";
+    if (!phoneValue.trim()) {
+      alert("Contact Phone is required.");
+      setIsSaving(false);
+      return;
+    }
+
+    const updatedData = {};
+    // Collect all data from the form inputs
     Object.entries(row).forEach(([key]) => {
       const input = e.target.elements[key];
       if (input) {
@@ -110,7 +134,7 @@ export default function EditPage() {
           alert(`Error: ${result.error}`);
         } else {
           setSuccessMessage("You have successfully submitted your information. One of our agents will contact you shortly.");
-          // Increase delay for success message visibility before redirection (5 seconds)
+          // Wait for 5 seconds to display the success message before redirecting.
           setTimeout(() => {
             router.push(`/view?dot=${dot}`);
           }, 5000);
@@ -138,7 +162,7 @@ export default function EditPage() {
         )}
         <div className={styles.formCard}>
           <form onSubmit={handleSubmit} className={styles.form}>
-            {/* Render each defined group */}
+            {/* Render grouped fields */}
             {groups.map((group, i) => (
               <div key={i} className={styles.formRow}>
                 {group.fields.map((fieldKey) => {
@@ -149,7 +173,7 @@ export default function EditPage() {
                 })}
               </div>
             ))}
-            {/* Render any remaining fields (excluding unwanted ones) */}
+            {/* Render any remaining fields, excluding unwanted ones */}
             {remainingFields.map(([key, value]) => (
               <div key={key} className={styles.formRow}>
                 {renderField(key, value)}
